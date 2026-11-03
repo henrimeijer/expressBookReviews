@@ -65,14 +65,32 @@ public_users.get('/isbn/:isbn', async function (req, res) {
   }
 });
 
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+// Get book details based on author synchonously
+// public_users.get('/author/:author',function (req, res) {
+//   const author = req.params.author;
+//   let filteredAuthorBooks = Object.values(books).filter((book) => book.author.toLowerCase() === author.toLowerCase());
+//   if (filteredAuthorBooks.length > 0) {
+//     res.status(200).send(JSON.stringify(filteredAuthorBooks, null, 3));
+//   } else {
+//     res.status(404).json({ message: "No books found for the specified author" });
+//   }
+// });
+
+// Get book details based on author with async/await
+public_users.get('/author/:author', async function (req, res) {
   const author = req.params.author;
-  let filteredAuthorBooks = Object.values(books).filter((book) => book.author.toLowerCase() === author.toLowerCase());
-  if (filteredAuthorBooks.length > 0) {
+  try {
+    const filteredAuthorBooks = await new Promise((resolve, reject) => {
+      const matches = Object.values(books).filter(
+        (book) => book.author.toLowerCase() === author.toLowerCase()
+      );
+      matches.length > 0
+        ? resolve(matches)
+        : reject(new Error("No books found for the specified author"));
+    });
     res.status(200).send(JSON.stringify(filteredAuthorBooks, null, 3));
-  } else {
-    res.status(404).json({ message: "No books found for the specified author" });
+  } catch (err) {
+    res.status(404).json({ message: err.message });
   }
 });
 
