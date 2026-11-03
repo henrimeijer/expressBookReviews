@@ -94,14 +94,32 @@ public_users.get('/author/:author', async function (req, res) {
   }
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+// Get all books based on title synchronously
+// public_users.get('/title/:title',function (req, res) {
+//   const title = req.params.title;
+//   let filteredTitleBooks = Object.values(books).filter((book) => book.title.toLowerCase() === title.toLowerCase());
+//   if (filteredTitleBooks.length > 0) {
+//     res.status(200).send(JSON.stringify(filteredTitleBooks, null, 3));
+//   } else {
+//     res.status(404).json({ message: "No books found for the specified title" });
+//   }
+// });
+
+// Get all books based on title with async/await
+public_users.get('/title/:title', async function (req, res) {
   const title = req.params.title;
-  let filteredTitleBooks = Object.values(books).filter((book) => book.title.toLowerCase() === title.toLowerCase());
-  if (filteredTitleBooks.length > 0) {
+  try {
+    const filteredTitleBooks = await new Promise((resolve, reject) => {
+      const matches = Object.values(books).filter(
+        (book) => book.title.toLowerCase() === title.toLowerCase()
+      );
+      matches.length > 0
+        ? resolve(matches)
+        : reject(new Error("No books found for the specified title"));
+    });
     res.status(200).send(JSON.stringify(filteredTitleBooks, null, 3));
-  } else {
-    res.status(404).json({ message: "No books found for the specified title" });
+  } catch (err) {
+    res.status(404).json({ message: err.message });
   }
 });
 
